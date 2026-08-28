@@ -59,7 +59,7 @@ dependencies {
 	implementation 'org.geotools:gt-geojson:32.1'
 	implementation 'com.google.code.gson:gson:2.12.1'
 	implementation 'de.grundid.opendatalab:geojson-jackson:1.14'
-	implementation 'org.hibernate.orm:hibernate-spatial:6.6.5.Final'
+	implementation 'org.hibernate.orm:hibernate-spatial:7.4.6.Final'
 	implementation 'net.sf.jasperreports:jasperreports:7.0.2'
 	implementation 'net.sf.jasperreports:jasperreports-pdf:7.0.2' 
 	implementation 'net.sf.jasperreports:jasperreports-fonts:7.0.2'
