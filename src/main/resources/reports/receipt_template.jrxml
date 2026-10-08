@@ -200,7 +200,7 @@
 					<expression><![CDATA[" "+$P{grafic_representation_title}]]></expression>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</element>
-				<element kind="image" uuid="ddf07b9a-d76a-4965-a6ca-19d2452173e4" x="50" y="40" width="455" height="160" scaleImage="FillFrame" hImageAlign="Center" vImageAlign="Middle">
+				<element kind="image" uuid="ddf07b9a-d76a-4965-a6ca-19d2452173e4" x="0" y="40" width="555" height="160" scaleImage="RetainShape" hImageAlign="Center" vImageAlign="Middle">
 					<expression><![CDATA[$P{imagemParam}]]></expression>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</element>

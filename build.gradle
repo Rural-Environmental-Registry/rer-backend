@@ -2,18 +2,9 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.2'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'jacoco'
 }
 
 sourceSets {
-    main {
-        java.srcDirs = ['src/main/java']
-        resources.srcDirs = ['src/main/resources']
-    }
-    test {
-        java.srcDirs = ['src/test/java']
-        resources.srcDirs = ['src/test/resources']
-    }
     tools {
         java.srcDir 'src/tools/java'
     }
@@ -50,7 +41,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.flywaydb:flyway-database-postgresql'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
@@ -64,7 +54,7 @@ dependencies {
 	implementation 'net.sf.jasperreports:jasperreports-pdf:7.0.2' 
 	implementation 'net.sf.jasperreports:jasperreports-fonts:7.0.2'
 	implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'io.projectreactor.netty:reactor-netty-http'
 	toolsImplementation 'net.sf.jasperreports:jasperreports:7.0.2'
 
@@ -79,54 +69,12 @@ dependencies {
 
 	compileOnly 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
-	finalizedBy jacocoTestReport
-}
-
-jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required = false
-		csv.required = false
-		html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
-	}
-	afterEvaluate {
-		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: [
-				// Test classes (should not be in coverage)
-				'**/*Test.class',
-				'**/*Tests.class',
-				'**/*TestCase.class',
-				// Domain entities (POJOs with Lombok)
-				'br/car/registration/domain/**',
-				// API DTOs (Request/Response objects)
-				'br/car/registration/api/v1/request/**',
-				'br/car/registration/api/v1/response/**',
-				// Enums (static values)
-				'br/car/registration/enums/**',
-				// Repository interfaces (Spring Data generated)
-				'br/car/registration/repository/**',
-				// Mapper interfaces (MapStruct generated)
-				'br/car/registration/mappers/**',
-				// Validation annotations (metadata only)
-				'br/car/registration/validation/ValidAttributes.class',
-				// Build tools (not runtime code)
-				'tools/**',
-				// Main application class
-				'br/car/registration/RegistrationApplication.class'
-			])
-		}))
-	}
-}
-
-tasks.named('compileTestJava') {
-    dependsOn 'copyCompiledJasper'
 }
 
 tasks.withType(JavaCompile) {
