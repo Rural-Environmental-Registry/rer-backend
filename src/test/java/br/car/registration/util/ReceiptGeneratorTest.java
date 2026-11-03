@@ -24,6 +24,7 @@ import br.car.registration.domain.Property;
 import br.car.registration.domain.PropertyDocument;
 import br.car.registration.domain.attributes.PropertyAttribute;
 import br.car.registration.domain.attributes.PropertyDocumentAttribute;
+import br.car.registration.i18n.TranslationCatalogService;
 import br.car.registration.mappers.PropertyMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +32,9 @@ class ReceiptGeneratorTest {
 
     @Mock
     private PropertyMapper propertyMapper;
+
+    @Mock
+    private TranslationCatalogService translationCatalogService;
 
     @InjectMocks
     private ReceiptGenerator receiptGenerator;
@@ -76,7 +80,7 @@ class ReceiptGeneratorTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class,
-                () -> receiptGenerator.readGeneralInformationText());
+                () -> receiptGenerator.readGeneralInformationText("en-us"));
     }
 
     @Test
@@ -86,7 +90,7 @@ class ReceiptGeneratorTest {
 
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> receiptGenerator.readGeneralInformationText());
+                () -> receiptGenerator.readGeneralInformationText("en-us"));
         assertEquals("Variável de ambiente 'GENERAL_INFORMATION_RECEIPT_PATH' não definida!",
                 exception.getMessage());
     }
@@ -98,7 +102,7 @@ class ReceiptGeneratorTest {
 
         // When & Then
         assertThrows(Exception.class,
-                () -> receiptGenerator.readGeneralInformationText());
+                () -> receiptGenerator.readGeneralInformationText("en-us"));
     }
 
     @Test
@@ -108,7 +112,7 @@ class ReceiptGeneratorTest {
         System.setProperty("DEFAULT_LOCATION_ZONE", "UTC");
 
         // When
-        byte[] result = receiptGenerator.createPdf(property, "UTC");
+        byte[] result = receiptGenerator.createPdf(property, "UTC", "en-us");
 
         // Then
         assertNull(result); // Returns null when jasper template is missing
@@ -121,7 +125,7 @@ class ReceiptGeneratorTest {
         System.setProperty("DEFAULT_LOCATION_ZONE", "UTC");
 
         // When & Then - Should handle exceptions gracefully
-        assertThrows(Exception.class, () -> receiptGenerator.createPdf(property, null));
+        assertThrows(Exception.class, () -> receiptGenerator.createPdf(property, null, "en-us"));
     }
 
     @Test
@@ -132,7 +136,7 @@ class ReceiptGeneratorTest {
         System.setProperty("DEFAULT_LOCATION_ZONE", "UTC");
 
         // When
-        byte[] result = receiptGenerator.createPdf(property, "UTC");
+        byte[] result = receiptGenerator.createPdf(property, "UTC", "en-us");
 
         // Then
         assertNull(result);
@@ -147,7 +151,7 @@ class ReceiptGeneratorTest {
         System.setProperty("RECEIPT_LOGO_PATH", "images/custom_logo.svg");
 
         // When
-        byte[] result = receiptGenerator.createPdf(property, "UTC");
+        byte[] result = receiptGenerator.createPdf(property, "UTC", "en-us");
 
         // Then
         assertNull(result);

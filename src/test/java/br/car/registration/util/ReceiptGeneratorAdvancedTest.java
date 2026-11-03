@@ -10,14 +10,18 @@ import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.ZoneId;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.Mockito.when;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import br.car.registration.i18n.TranslationCatalogService;
 import br.car.registration.mappers.PropertyMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,12 +30,15 @@ class ReceiptGeneratorAdvancedTest {
     @Mock
     private PropertyMapper propertyMapper;
 
+    @Mock
+    private TranslationCatalogService translationCatalogService;
+
     @InjectMocks
     private ReceiptGenerator receiptGenerator;
 
     @BeforeEach
     void setUp() {
-        receiptGenerator = new ReceiptGenerator(propertyMapper);
+        receiptGenerator = new ReceiptGenerator(propertyMapper, translationCatalogService);
     }
 
     @AfterEach
@@ -109,20 +116,17 @@ class ReceiptGeneratorAdvancedTest {
     }
 
     @Test
-    void loadJsonParameters_WithNullPath_ShouldThrowException() {
-        // Given
-        System.clearProperty("REPORT_PARAMS_RECEIPT_JSON");
-
-        // When & Then
-        assertThrows(Exception.class, () -> receiptGenerator.loadJsonParameters());
+    void loadJsonParameters_WithoutEnv_ShouldLoadDefaultCatalog() throws Exception {
+        Map<String, Object> result = receiptGenerator.loadJsonParameters();
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test
-    void loadJsonParameters_WithInvalidJsonPath_ShouldThrowException() {
-        // Given
-        System.setProperty("REPORT_PARAMS_RECEIPT_JSON", "invalid/path.json");
-
-        // When & Then
-        assertThrows(Exception.class, () -> receiptGenerator.loadJsonParameters());
+    void loadReportParameters_ShouldUseTranslationCatalog() throws Exception {
+        when(translationCatalogService.getReportParameters("pt-br"))
+                .thenReturn(Map.of("header", Map.of("title_text", "Teste")));
+        Map<String, Object> result = receiptGenerator.loadReportParameters("pt-br");
+        assertEquals("Teste", ((Map<?, ?>) result.get("header")).get("title_text"));
     }
 }

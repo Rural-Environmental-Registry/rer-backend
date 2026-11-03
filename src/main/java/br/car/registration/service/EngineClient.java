@@ -19,11 +19,14 @@ public class EngineClient {
 
     private final WebClient webClient;
     private final String workflow;
+    private final Duration readTimeout;
 
     EngineClient(WebClient engineWebClient,
-                 @Value("${cardpg.engine.workflow}") String workflow) {
+                 @Value("${cardpg.engine.workflow}") String workflow,
+                 @Value("${cardpg.engine.timeout.read-ms:60000}") long readTimeoutMs) {
         this.webClient = engineWebClient;
         this.workflow = workflow;
+        this.readTimeout = Duration.ofMillis(readTimeoutMs);
     }
 
     public Map<String, Object> execute(CalculationEngineReq body) {
@@ -33,7 +36,7 @@ public class EngineClient {
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(MAP_TYPE)
-                .timeout(Duration.ofSeconds(60))
+                .timeout(readTimeout)
                 .map(this::processarResposta)
                 .onErrorResume(this::tratarErro)
                 .block();

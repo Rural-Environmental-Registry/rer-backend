@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import br.car.registration.api.v1.response.PropertyRes;
 import br.car.registration.domain.Property;
 import br.car.registration.domain.PropertyDocument;
+import br.car.registration.i18n.TranslationCatalogService;
 import br.car.registration.mappers.PropertyMapper;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -37,12 +38,15 @@ import net.sf.jasperreports.engine.util.JRLoader;
 public class ReceiptGenerator {
 
   private final PropertyMapper propertyMapper;
+  private final TranslationCatalogService translationCatalogService;
 
-  public ReceiptGenerator(PropertyMapper propertyMapper) {
+  public ReceiptGenerator(PropertyMapper propertyMapper,
+      TranslationCatalogService translationCatalogService) {
     this.propertyMapper = propertyMapper;
+    this.translationCatalogService = translationCatalogService;
   }
 
-  public byte[] createPdf(Property property, String locationZone) {
+  public byte[] createPdf(Property property, String locationZone, String locale) {
     String WATERMARK_IMAGE_PATH = System.getenv("WATERMARK_IMAGE_PATH");
     String defaultLocationZone = System.getenv("DEFAULT_LOCATION_ZONE");
     String zoneToUse = (locationZone == null && locationZone.isBlank()) ? defaultLocationZone : locationZone;
@@ -64,10 +68,10 @@ public class ReceiptGenerator {
     imagePath = (imageEnvPath == null) ? "classpath:images/govbr.svg" : "classpath:" + imageEnvPath;
 
     try (InputStream jasperStream = getClass().getResourceAsStream("/reports/receipt_template.jasper")) {
-      String textContent = this.readGeneralInformationText();
+      String textContent = this.readGeneralInformationText(locale);
       JasperReport jasperReport = (JasperReport) JRLoader.loadObject(jasperStream);
       JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(properties);
-      Map<String, Object> jsonParams = loadJsonParameters();
+      Map<String, Object> jsonParams = loadReportParameters(locale);
       Map<String, Object> parameters = new HashMap<>();
       parameters.put("createdBy", "Dataprev");
       parameters.put("LOGO_PATH", imagePath);
@@ -91,13 +95,23 @@ public class ReceiptGenerator {
 
   }
 
-  public String readGeneralInformationText() throws IOException {
+  public String readGeneralInformationText(String locale) throws IOException {
     ClassLoader classLoader = ResourceReader.class.getClassLoader();
     String generalInformationFilePath = System.getenv("GENERAL_INFORMATION_RECEIPT_PATH");
     if (generalInformationFilePath == null || generalInformationFilePath.isBlank()) {
       throw new IllegalArgumentException(
           "Variável de ambiente 'GENERAL_INFORMATION_RECEIPT_PATH' não definida!");
     }
+
+    String normalizedLocale = translationCatalogService.normalizeLocale(locale);
+    String localeSpecificPath = "reports/i18n/" + normalizedLocale + "/GENERAL_INFORMATION.txt";
+    InputStream localeStream = classLoader.getResourceAsStream(localeSpecificPath);
+    if (localeStream != null) {
+      try (InputStream inputStream = localeStream) {
+        return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+      }
+    }
+
     try (InputStream inputStream = classLoader.getResourceAsStream(generalInformationFilePath)) {
       if (inputStream == null) {
         throw new FileNotFoundException("Arquivo não encontrado: " + generalInformationFilePath);
@@ -106,9 +120,29 @@ public class ReceiptGenerator {
     }
   }
 
-  public Map<String, Object> loadJsonParameters() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
+  public Map<String, Object> loadReportParameters(String locale) throws IOException {
+    Map<String, Object> localized = translationCatalogService.getReportParameters(locale);
+    if (!localized.isEmpty()) {
+      return localized;
+    }
+
     String reportParamsJsonPath = System.getenv("REPORT_PARAMS_RECEIPT_JSON");
+    if (reportParamsJsonPath != null && !reportParamsJsonPath.isBlank()) {
+      return loadJsonParametersFromPath(reportParamsJsonPath);
+    }
+    return loadJsonParametersFromPath("reports/i18n/en-us/report_params.json");
+  }
+
+  public Map<String, Object> loadJsonParameters() throws IOException {
+    String reportParamsJsonPath = System.getenv("REPORT_PARAMS_RECEIPT_JSON");
+    if (reportParamsJsonPath == null || reportParamsJsonPath.isBlank()) {
+      reportParamsJsonPath = "reports/i18n/en-us/report_params.json";
+    }
+    return loadJsonParametersFromPath(reportParamsJsonPath);
+  }
+
+  private Map<String, Object> loadJsonParametersFromPath(String reportParamsJsonPath) throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
     InputStream jsonStream = new ClassPathResource(reportParamsJsonPath).getInputStream();
     return mapper.readValue(jsonStream, new TypeReference<Map<String, Object>>() {
     });
