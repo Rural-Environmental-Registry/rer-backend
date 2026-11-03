@@ -27,6 +27,7 @@ import br.car.registration.domain.attributes.PersonAttribute;
 import br.car.registration.repository.PersonRepository;
 import br.car.registration.repository.PropertyRepository;
 import br.car.registration.repository.PropertySpecification;
+import br.car.registration.i18n.TranslationCatalogService;
 import br.car.registration.util.PropertyHashGenerator;
 import br.car.registration.util.ReceiptGenerator;
 
@@ -38,14 +39,17 @@ public class PropertyService {
     private final PropertyHashGenerator hashGenerator;
     private final ReceiptGenerator receiptGenerator;
     private final UserRepository userRepository;
+    private final TranslationCatalogService translationCatalogService;
 
     public PropertyService(PropertyRepository propertyRepository, PersonRepository personRepository,
-            PropertyHashGenerator hashGenerator, ReceiptGenerator receiptGenerator, UserRepository userRepository) {
+            PropertyHashGenerator hashGenerator, ReceiptGenerator receiptGenerator, UserRepository userRepository,
+            TranslationCatalogService translationCatalogService) {
         this.propertyRepository = propertyRepository;
         this.personRepository = personRepository;
         this.hashGenerator = hashGenerator;
         this.receiptGenerator = receiptGenerator;
         this.userRepository = userRepository;
+        this.translationCatalogService = translationCatalogService;
     }
 
     @Transactional
@@ -206,10 +210,11 @@ public class PropertyService {
         return StreamSupport.stream(propertyRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
-    public byte[] generatePropertyReceipt(UUID id, String locationZone) {
+    public byte[] generatePropertyReceipt(UUID id, String locationZone, String acceptLanguage, String localeParam) {
         Property property = this.getProperty(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Property not founded"));
-        return receiptGenerator.createPdf(property, locationZone);
+        String locale = translationCatalogService.resolveLocale(acceptLanguage, localeParam);
+        return receiptGenerator.createPdf(property, locationZone, locale);
     }
 
     public Page<Property> getFilteredProperties(PropertyFilter filter, Pageable pageable) {

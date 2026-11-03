@@ -134,7 +134,7 @@ class AdminControllerTest {
     @Test
     void getAppInfo_WhenCalled_ShouldReturnInfo() throws IOException {
         // Given
-        when(receiptGenerator.readGeneralInformationText()).thenReturn("test info");
+        when(receiptGenerator.readGeneralInformationText(org.mockito.ArgumentMatchers.anyString())).thenReturn("test info");
         when(receiptGenerator.loadJsonParameters()).thenReturn(Map.of("test", "value"));
 
         // When

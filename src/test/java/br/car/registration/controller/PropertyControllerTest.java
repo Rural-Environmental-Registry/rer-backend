@@ -175,10 +175,10 @@ class PropertyControllerTest {
         String locationZone = "UTC";
         byte[] receiptData = "test pdf".getBytes();
         
-        when(propertyService.generatePropertyReceipt(id, locationZone)).thenReturn(receiptData);
+        when(propertyService.generatePropertyReceipt(id, locationZone, null, null)).thenReturn(receiptData);
 
         // When
-        ResponseEntity<byte[]> result = propertyController.getReceipt(id, locationZone);
+        ResponseEntity<byte[]> result = propertyController.getReceipt(id, locationZone, null, null);
 
         // Then
         assertEquals(HttpStatus.OK, result.getStatusCode());

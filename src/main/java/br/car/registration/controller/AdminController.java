@@ -9,6 +9,7 @@ import br.car.registration.enums.AttributeTypesEnum;
 import br.car.registration.mappers.AttributeDefinitionMapper;
 import br.car.registration.mappers.AttributeSetMapper;
 import br.car.registration.service.AttributeService;
+import br.car.registration.i18n.TranslationCatalogService;
 import br.car.registration.util.ReceiptGenerator;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
@@ -97,7 +98,8 @@ public class AdminController implements AdminApi {
         String generalInformationFilePath = System.getenv("GENERAL_INFORMATION_RECEIPT_PATH");
         Map<String, Object> receipt_params_json = new HashMap<String, Object>();
         try {
-            generalInformationOfReceipt = receiptGenerator.readGeneralInformationText();
+            generalInformationOfReceipt = receiptGenerator.readGeneralInformationText(
+                    TranslationCatalogService.DEFAULT_LOCALE);
             receipt_params_json = receiptGenerator.loadJsonParameters();
         } catch (Exception e) {
             e.printStackTrace();

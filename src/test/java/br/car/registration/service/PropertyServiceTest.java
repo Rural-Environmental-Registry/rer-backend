@@ -35,6 +35,7 @@ import br.car.registration.repository.PersonRepository;
 import br.car.registration.repository.PropertyRepository;
 import org.springframework.data.jpa.domain.Specification;
 import br.car.registration.repository.UserRepository;
+import br.car.registration.i18n.TranslationCatalogService;
 import br.car.registration.util.PropertyHashGenerator;
 import br.car.registration.util.ReceiptGenerator;
 
@@ -55,6 +56,9 @@ class PropertyServiceTest {
     
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TranslationCatalogService translationCatalogService;
 
     @InjectMocks
     private PropertyService propertyService;
@@ -200,15 +204,16 @@ class PropertyServiceTest {
         // Given
         byte[] pdfBytes = "PDF_CONTENT".getBytes();
         when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(property));
-        when(receiptGenerator.createPdf(property, "ZONE1")).thenReturn(pdfBytes);
+        when(translationCatalogService.resolveLocale(null, null)).thenReturn("en-us");
+        when(receiptGenerator.createPdf(property, "ZONE1", "en-us")).thenReturn(pdfBytes);
 
         // When
-        byte[] result = propertyService.generatePropertyReceipt(propertyId, "ZONE1");
+        byte[] result = propertyService.generatePropertyReceipt(propertyId, "ZONE1", null, null);
 
         // Then
         assertArrayEquals(pdfBytes, result);
         verify(propertyRepository).findById(propertyId);
-        verify(receiptGenerator).createPdf(property, "ZONE1");
+        verify(receiptGenerator).createPdf(property, "ZONE1", "en-us");
     }
 
     @Test
@@ -218,7 +223,7 @@ class PropertyServiceTest {
 
         // When & Then
         assertThrows(ResponseStatusException.class, 
-            () -> propertyService.generatePropertyReceipt(propertyId, "ZONE1"));
+            () -> propertyService.generatePropertyReceipt(propertyId, "ZONE1", null, null));
         verify(propertyRepository).findById(propertyId);
     }
 
