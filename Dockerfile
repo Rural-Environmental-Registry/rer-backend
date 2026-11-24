@@ -36,7 +36,7 @@ RUN --mount=type=cache,target=/root/.gradle/caches \
 # ============================
 # 3) Runtime Stage
 # ============================
-FROM eclipse-temurin:21-jre-jammy AS runtime
+FROM eclipse-temurin:21.0.13.1_2-jre-jammy AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends fontconfig libfreetype6 && rm -rf /var/lib/apt/lists/*
 
 RUN addgroup --system --gid 1001 appgroup && \
